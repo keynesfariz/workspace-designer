@@ -57,11 +57,11 @@ export default function CanvasDesigner() {
     useLocalStorage<OfficeSizeOption>('office-size');
 
   if (!officeSize) {
-    router.back();
+    return;
   }
 
   const isMobile = useIsMobile();
-  const units = officeSize!.spaceUnits;
+  const units = officeSize.spaceUnits;
 
   const [state, setState] = useState<CanvasState>(() => buildEmptyState(units));
 
@@ -89,7 +89,7 @@ export default function CanvasDesigner() {
       (s, inst) => s + (getDef(inst.defId)?.rentPerDay ?? 0),
       0,
     );
-    return officeSize!.baseRentPerDay + itemsCost;
+    return officeSize.baseRentPerDay + itemsCost;
   }, [state.instances, officeSize]);
 
   // ── Derived: cart line items ──
@@ -664,7 +664,7 @@ export default function CanvasDesigner() {
           OFFICE
         </div>
         <div className="text-xs font-bold tracking-wide text-stone-900">
-          {officeSize!.label} · {officeSize!.spaceUnits} space units
+          {officeSize.label} · {officeSize.spaceUnits} space units
         </div>
       </div>
 
@@ -675,8 +675,8 @@ export default function CanvasDesigner() {
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex justify-between text-xs text-stone-500">
-            <span>{officeSize!.label} Office</span>
-            <span>${officeSize!.baseRentPerDay}/day</span>
+            <span>{officeSize.label} Office</span>
+            <span>${officeSize.baseRentPerDay}/day</span>
           </div>
           {cartItems.map(({ def, qty }) => (
             <div

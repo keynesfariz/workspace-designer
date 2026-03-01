@@ -5,17 +5,15 @@ import { getDef } from '@/helpers';
 import OfficeSizeOption from '@/types/OfficeSizeOption';
 import PlacedInstance from '@/types/PlacedInstance';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { useLocalStorage } from 'react-use';
 
 export default function Checkout() {
-  const router = useRouter();
   const [officeSize] = useLocalStorage<OfficeSizeOption>('office-size');
   const [instances] = useLocalStorage<PlacedInstance[]>('final-design', []);
 
   if (!officeSize || !instances) {
-    router.push('/');
+    return;
   }
 
   const [days, setDays] = useState(1);
@@ -48,7 +46,7 @@ export default function Checkout() {
             BOOKING CONFIRMED
           </h2>
           <p className="text-sm leading-relaxed text-stone-500">
-            {officeSize!.label} office · {days} day{days > 1 ? 's' : ''}
+            {officeSize.label} office · {days} day{days > 1 ? 's' : ''}
             <br />
             Total:{' '}
             <strong className="text-stone-900">${grand.toFixed(2)}</strong>
@@ -69,7 +67,7 @@ export default function Checkout() {
       <div className="flex justify-center px-4 py-10">
         <div className="flex w-full max-w-lg flex-col gap-5 border-2 border-stone-900 bg-stone-50 p-7 [box-shadow:5px_5px_0_var(--tw-shadow-color)] shadow-stone-900">
           <Link
-            href={`/design?size=${officeSize!.id}`}
+            href={`/design?size=${officeSize.id}`}
             className="cursor-pointer self-start border border-stone-900 bg-transparent px-3 py-1.5 text-[10px] font-bold tracking-widest text-stone-900 transition-colors hover:bg-stone-200">
             ← Back to Design
           </Link>
@@ -84,9 +82,9 @@ export default function Checkout() {
             </div>
             <div className="flex justify-between text-xs text-stone-700">
               <span>
-                {officeSize!.label} Office ({officeSize!.spaceUnits} units)
+                {officeSize.label} Office ({officeSize.spaceUnits} units)
               </span>
-              <span>${officeSize!.baseRentPerDay}/day</span>
+              <span>${officeSize.baseRentPerDay}/day</span>
             </div>
           </div>
 
