@@ -1,3 +1,10 @@
+---
+title: 'Workspace Designer'
+summary: 'Workspace Designer simulation app to book a workspace'
+tags: ['react', 'vercel']
+publishDate: '2026-03-01T06:20:47Z'
+---
+
 # Workspace Designer
 
 An architectural-blueprint-style office workspace configurator built with Next.js and styled using Tailwind CSS. Users pick an office size, furnish it using a slot-based wall-elevation canvas, then check out with a rental summary.
