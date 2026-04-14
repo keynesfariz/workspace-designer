@@ -14,6 +14,8 @@ import {
 } from '@/constants/calculations';
 import { getDef, uid } from '@/helpers';
 import useIsMobile from '@/hooks/useIsMobile';
+import { cloneCanvasState, initializeCanvasState } from '@/lib/stateHelpers';
+import type { CanvasState } from '@/types/CanvasState';
 import OfficeSizeOption from '@/types/OfficeSizeOption';
 import PlacedInstance from '@/types/PlacedInstance';
 import PlacingPosition from '@/types/PlacingPosition';
@@ -21,35 +23,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocalStorage } from 'react-use';
-
-/**
- * Canvas state:
- *  wallSlots[i]                         — instanceId at wall column i, or null
- *  floorSlots[i]                        — instanceId at floor column i, or null
- *                                          (multi-unit items fill N consecutive slots)
- *  tableTopSlots[tableInstanceId][j]    — instanceId in table-surface slot j, or null
- *                                          (accepts everything EXCEPT chairs)
- *  tableFloorSlots[tableInstanceId][j]  — instanceId in table-floor slot j, or null
- *                                          (CHAIRS ONLY — sit in front of the table)
- *  instances                            — map of instanceId → PlacedInstance
- */
-interface CanvasState {
-  wallSlots: (string | null)[];
-  floorSlots: (string | null)[];
-  tableTopSlots: Record<string, (string | null)[]>;
-  tableFloorSlots: Record<string, (string | null)[]>;
-  instances: Record<string, PlacedInstance>;
-}
-
-function buildEmptyState(units: number): CanvasState {
-  return {
-    wallSlots: Array(units).fill(null),
-    floorSlots: Array(units).fill(null),
-    tableTopSlots: {},
-    tableFloorSlots: {},
-    instances: {},
-  };
-}
 
 export default function CanvasDesigner() {
   const router = useRouter();
@@ -63,7 +36,9 @@ export default function CanvasDesigner() {
   const isMobile = useIsMobile();
   const units = officeSize.spaceUnits;
 
-  const [state, setState] = useState<CanvasState>(() => buildEmptyState(units));
+  const [state, setState] = useState<CanvasState>(() =>
+    initializeCanvasState(units),
+  );
 
   const [_, setPlacedInstances] =
     useLocalStorage<PlacedInstance[]>('final-design');
@@ -113,17 +88,7 @@ export default function CanvasDesigner() {
       setPicker(null);
 
       setState((prev) => {
-        const next: CanvasState = {
-          wallSlots: [...prev.wallSlots],
-          floorSlots: [...prev.floorSlots],
-          tableTopSlots: Object.fromEntries(
-            Object.entries(prev.tableTopSlots).map(([k, v]) => [k, [...v]]),
-          ),
-          tableFloorSlots: Object.fromEntries(
-            Object.entries(prev.tableFloorSlots).map(([k, v]) => [k, [...v]]),
-          ),
-          instances: { ...prev.instances },
-        };
+        const next = cloneCanvasState(prev);
 
         const instanceId = uid();
         const instance: PlacedInstance = {
@@ -199,17 +164,7 @@ export default function CanvasDesigner() {
   const handleRemove = useCallback(() => {
     if (!selectedId) return;
     setState((prev) => {
-      const next: CanvasState = {
-        wallSlots: [...prev.wallSlots],
-        floorSlots: [...prev.floorSlots],
-        tableTopSlots: Object.fromEntries(
-          Object.entries(prev.tableTopSlots).map(([k, v]) => [k, [...v]]),
-        ),
-        tableFloorSlots: Object.fromEntries(
-          Object.entries(prev.tableFloorSlots).map(([k, v]) => [k, [...v]]),
-        ),
-        instances: { ...prev.instances },
-      };
+      const next = cloneCanvasState(prev);
 
       const inst = next.instances[selectedId];
       if (!inst) return prev;
@@ -315,7 +270,7 @@ export default function CanvasDesigner() {
         transform: `scale(${canvasScale})`,
         transformOrigin: 'top left',
       }}
-      className="overflow-visible border-2 border-stone-900 bg-stone-50 [box-shadow:6px_6px_0_var(--tw-shadow-color)] shadow-stone-900 select-none"
+      className="mx-auto overflow-visible border-2 border-stone-900 bg-stone-50 [box-shadow:6px_6px_0_var(--tw-shadow-color)] shadow-stone-900 select-none"
       onClick={() => setSelectedId(null)}>
       {/* Column dividers */}
       {Array.from({ length: units - 1 }).map((_, i) => (
@@ -584,7 +539,7 @@ export default function CanvasDesigner() {
               </div>
 
               {/* Name label */}
-              <div className="mt-0.5 text-center font-mono text-[8px] tracking-wide text-stone-400">
+              <div className="my-1 text-center font-mono text-[8px] tracking-wide text-stone-400">
                 {def.name.toUpperCase()}
               </div>
 
@@ -656,7 +611,7 @@ export default function CanvasDesigner() {
       className={
         isMobile
           ? 'flex max-h-[45vh] flex-col gap-3.5 overflow-y-auto border-t-2 border-stone-900 bg-stone-50 p-4 font-mono'
-          : 'sticky top-0 flex max-h-screen w-64 min-w-64 flex-col gap-4 overflow-y-auto border-l-2 border-stone-900 bg-stone-50 p-5 font-mono'
+          : 'sticky top-0 flex min-h-[calc(100vh-3.375rem)] max-w-96 flex-col gap-4 overflow-y-auto border-l-2 border-stone-900 bg-stone-50 p-5 font-mono'
       }>
       {/* Office info */}
       <div className="flex flex-col gap-1 border-b border-stone-200 pb-3.5">

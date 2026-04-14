@@ -1,12 +1,10 @@
 'use client';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// OBJECT PICKER MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-
+import { getPositionLabel } from '@/lib/positionLabels';
+import { MODAL_CONTENT_STYLE, MODAL_OVERLAY_STYLE } from '@/lib/styles';
 import ObjectCategory from '@/types/ObjectCategory';
 import PlacingPosition from '@/types/PlacingPosition';
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { CATALOG } from '../assets';
 
 /**
@@ -18,7 +16,7 @@ import { CATALOG } from '../assets';
  *  "table-top"   → items with placingPosition === "table-top" (all categories EXCEPT chairs)
  *  "table-floor" → items with placingPosition === "table-floor" (chairs ONLY)
  */
-function ObjectPicker({
+const ObjectPicker = memo(function ObjectPicker({
   position,
   onPick,
   onClose,
@@ -45,24 +43,13 @@ function ObjectPicker({
     [baseItems, cat],
   );
 
-  const positionLabel =
-    position === 'table-top'
-      ? 'TABLE SURFACE'
-      : position === 'table-floor'
-        ? 'TABLE FLOOR (chairs only)'
-        : position.toUpperCase();
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4"
-      onClick={onClose}>
-      <div
-        className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden border-2 border-stone-900 bg-stone-50 font-mono [box-shadow:6px_6px_0_var(--tw-shadow-color)] shadow-stone-900"
-        onClick={(e) => e.stopPropagation()}>
+    <div className={MODAL_OVERLAY_STYLE} onClick={onClose}>
+      <div className={MODAL_CONTENT_STYLE} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-stone-900 px-5 py-3">
           <div className="text-xs font-bold tracking-widest text-stone-900">
-            ADD TO <strong>{positionLabel}</strong>
+            ADD TO <strong>{getPositionLabel(position)}</strong>
           </div>
           <button
             className="cursor-pointer border-none bg-transparent px-1.5 py-0.5 text-base text-stone-900 hover:bg-stone-200"
@@ -98,14 +85,14 @@ function ObjectPicker({
               className="m-0.5 flex cursor-pointer flex-col items-center gap-1 border border-stone-200 bg-transparent p-3 font-mono text-stone-900 transition-colors hover:bg-stone-100"
               onClick={() => onPick(def.id)}
               title={`${def.name} — $${def.rentPerDay}/day — ${def.size} unit(s)`}>
-              <div className="flex h-[72px] w-[72px] items-center justify-center">
+              <div className="flex h-18 w-18 items-center justify-center">
                 {def.render(72, 72)}
               </div>
               <div className="text-center text-[9px] font-bold tracking-wide text-stone-900">
                 {def.name}
               </div>
               <div className="text-[9px] text-stone-400">
-                {def.size}u · ${def.rentPerDay}/day
+                {def.size} unit(s) · ${def.rentPerDay}/day
               </div>
             </button>
           ))}
@@ -113,6 +100,6 @@ function ObjectPicker({
       </div>
     </div>
   );
-}
+});
 
 export default ObjectPicker;
